@@ -1,19 +1,23 @@
 package main
 
 import (
+	"runtime"
 	"ware/http2/master"
 
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
 func main() {
 
 	port := ":7554"
+
+	runtime.GOMAXPROCS(4)
 
 	handlers.AllowedHeaders([]string{"X-Requested-With"})
 	handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
@@ -36,6 +40,6 @@ func main() {
 
 	r.HandleFunc("/v1/api/delo", master.DelOneMaster).Methods("POST")
 
-	http.ListenAndServe(port, r)
+	fasthttp.ListenAndServe(port, fasthttpadaptor.NewFastHTTPHandler(r))
 
 }
