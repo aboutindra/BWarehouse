@@ -71,7 +71,11 @@ func GetWithParam(col mongo.Collection, payload interface{}) interface{} {
 
 	col.FindOne(ct, payload).Decode(&tmpRes)
 
-	return tmpRes
+	if tmpRes.Id.IsZero() == false {
+		return tmpRes
+	} else {
+		return nil
+	}
 
 }
 

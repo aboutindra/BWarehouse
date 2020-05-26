@@ -39,7 +39,20 @@ func GetAllDataMaster(res http.ResponseWriter, req *http.Request) {
 
 	}
 
-	json.NewEncoder(res).Encode(result)
+	var resArr data.ResArray
+
+	if result == nil {
+
+		resBool.Res = false
+		json.NewEncoder(res).Encode(resBool)
+
+		return
+
+	} else {
+		resArr.Res = result
+	}
+
+	json.NewEncoder(res).Encode(resArr)
 
 }
 
@@ -68,7 +81,20 @@ func GetWithParamMaster(res http.ResponseWriter, req *http.Request) {
 
 	result := db.GetWithParam(*col, tmpFormat)
 
-	json.NewEncoder(res).Encode(result)
+	var resObj data.ResObj
+
+	if result == nil {
+
+		resBool.Res = false
+		json.NewEncoder(res).Encode(resBool)
+
+		return
+
+	} else {
+		resObj.Res = result
+	}
+
+	json.NewEncoder(res).Encode(resObj)
 
 }
 
