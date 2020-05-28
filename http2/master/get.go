@@ -11,22 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	mongoDB string = "mongodb://localhost:27017"
-	dbName  string = "WarehouseDB"
-	coll    string = "Master"
-)
-
-var m db.F
-
-func init() {
-
-	col, _ := db.MakeConnection(mongoDB, dbName, coll)
-	m = db.F{*col, 1}
-
-}
-
-func GetAllDataMaster(res http.ResponseWriter, req *http.Request) {
+func GetAllData(res http.ResponseWriter, req *http.Request) {
 
 	http2.SetHeader(res)
 

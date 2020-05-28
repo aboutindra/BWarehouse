@@ -10,7 +10,7 @@ func (m MongoDB) UpdOne(find interface{}, set primitive.D) error {
 	return err
 }
 
-func (m MongoDB) UpdOne(find interface{}, set primitive.D) error {
+func (m MongoDB) UpdMany(find interface{}, set primitive.D) error {
 	ct := m.MakeContext(10)
 	_, err := col.UpdateMany(ct, find, set)
 	return err
