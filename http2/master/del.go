@@ -11,11 +11,12 @@ import (
 func DelOneMaster(res http.ResponseWriter, req *http.Request) {
 
 	http2.SetHeader(res)
-	col, err := db.MakeConnection("mongodb://localhost:27017", "WarehouseDB", "Master")
+
+	col, err := db.MakeConnection(mongoDB, dbName, coll)
 
 	var tmpReq data.ReqItemIdDataMaster
 
-	json.NewDecoder(req.Body).Decode(tmpReq)
+	json.NewDecoder(req.Body).Decode(&tmpReq)
 
 	errr := db.DelOne(*col, tmpReq)
 

@@ -11,48 +11,101 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	mongoDB string = "mongodb://localhost:27017"
+	dbName  string = "WarehouseDB"
+	coll    string = "Master"
+)
+
+var m db.F
+
+func init() {
+
+	col, _ := db.MakeConnection(mongoDB, dbName, coll)
+	m = db.F{*col, 1}
+
+}
+
 func GetAllDataMaster(res http.ResponseWriter, req *http.Request) {
 
 	http2.SetHeader(res)
 
-	col, err := db.MakeConnection("mongodb://localhost:27017", "WarehouseDB", "Master")
-
 	var resBool data.ResBool
 
-	if err != nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
-
-	}
-
-	result, errr := db.GetAllData(*col)
-
-	if errr != nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
-
-	}
+	result, err := m.GetAllData()
 
 	var resArr data.ResArray
 
-	if result == nil {
+	if result == nil || err != nil {
 
 		resBool.Res = false
 		json.NewEncoder(res).Encode(resBool)
 
 		return
 
-	} else {
-		resArr.Res = result
 	}
 
+	resArr.Res = result
+
 	json.NewEncoder(res).Encode(resArr)
+
+}
+
+func GetAllWithParamModel(res http.ResponseWriter, req *http.Request) {
+
+	http2.SetHeader(res)
+
+	var tmpReq data.ReqObjModel
+
+	tmpReq.Model = mux.Vars(req)["model"]
+
+	result, err := m.GetAllWithParam(tmpReq)
+
+	var tmpBool data.ResBool
+
+	if err != nil || result == nil {
+
+		tmpBool.Res = false
+		json.NewEncoder(res).Encode(tmpBool)
+
+		return
+
+	}
+
+	var tmpArr data.ResArray
+
+	tmpArr.Res = result
+
+	json.NewEncoder(res).Encode(tmpArr)
+
+}
+
+func GetAllWithParamTipe(res http.ResponseWriter, req *http.Request) {
+
+	http2.SetHeader(res)
+
+	var tmpReq data.ReqObjTipe
+
+	tmpReq.Tipe = mux.Vars(req)["tipe"]
+
+	result, err := m.GetAllWithParam(tmpReq)
+
+	var tmpBool data.ResBool
+
+	if err != nil || result == nil {
+
+		tmpBool.Res = false
+		json.NewEncoder(res).Encode(tmpBool)
+
+		return
+
+	}
+
+	var tmpArr data.ResArray
+
+	tmpArr.Res = result
+
+	json.NewEncoder(res).Encode(tmpArr)
 
 }
 
@@ -60,18 +113,7 @@ func GetWithParamMaster(res http.ResponseWriter, req *http.Request) {
 
 	http2.SetHeader(res)
 
-	col, err := db.MakeConnection("mongodb://localhost:27017", "WarehouseDB", "Master")
-
 	var resBool data.ResBool
-
-	if err != nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
-
-	}
 
 	var tmpFormat data.ReqItemIdDataMaster
 
@@ -79,7 +121,7 @@ func GetWithParamMaster(res http.ResponseWriter, req *http.Request) {
 
 	tmpFormat.IdMaster = tmpReq
 
-	result := db.GetWithParam(*col, tmpFormat)
+	result := m.GetWithParam(tmpFormat)
 
 	var resObj data.ResObj
 
@@ -90,9 +132,9 @@ func GetWithParamMaster(res http.ResponseWriter, req *http.Request) {
 
 		return
 
-	} else {
-		resObj.Res = result
 	}
+
+	resObj.Res = result
 
 	json.NewEncoder(res).Encode(resObj)
 
@@ -102,20 +144,9 @@ func GetTotalMaster(res http.ResponseWriter, req *http.Request) {
 
 	http2.SetHeader(res)
 
-	col, err := db.MakeConnection("mongodb://localhost:27017", "WarehouseDB", "Master")
+	col, err := db.MakeConnection(mongoDB, dbName, coll)
 
 	var resBool data.ResBool
-
-	if err != nil {
-
-		fmt.Println(err)
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
-
-	}
 
 	var tmpRes data.ResInt
 
@@ -125,7 +156,7 @@ func GetTotalMaster(res http.ResponseWriter, req *http.Request) {
 
 	tmpRes.Res = tmpInt
 
-	if errr != nil {
+	if errr != nil || err != nil {
 
 		fmt.Println(errr)
 

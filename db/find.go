@@ -8,14 +8,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func GetAllData(col mongo.Collection) ([]interface{}, error) {
+type F struct {
+	Col  mongo.Collection
+	Tipe int
+}
+
+var ret data.ResDataMaster
+var ret2 data.ResDataIO
+
+func (m F) GetAllData() ([]interface{}, error) {
 
 	var tmpRes []interface{}
 
 	ct := MakeContext(60)
 	ct2 := MakeContext(10)
 
-	res, err := col.Find(ct, bson.M{})
+	res, err := m.Col.Find(ct, bson.M{})
 
 	if err != nil {
 		return nil, err
@@ -23,11 +31,13 @@ func GetAllData(col mongo.Collection) ([]interface{}, error) {
 
 	for res.Next(ct2) {
 
-		var tmp data.ReqDataMaster
-
-		res.Decode(&tmp)
-
-		tmpRes = append(tmpRes, tmp)
+		if m.Tipe == 1 {
+			res.Decode(&ret)
+			tmpRes = append(tmpRes, ret)
+		} else {
+			res.Decode(&ret2)
+			tmpRes = append(tmpRes, ret2)
+		}
 
 	}
 
@@ -35,15 +45,13 @@ func GetAllData(col mongo.Collection) ([]interface{}, error) {
 
 }
 
-func GetPagination(col mongo.Collection, lim int64, skip int64) ([]interface{}, error) {
+func (m F) GetAllWithParam(filter interface{}) ([]interface{}, error) {
 
 	var tmpRes []interface{}
 
 	ct := MakeContext(10)
 
-	option := options.FindOptions{}
-
-	res, err := col.Find(ct, bson.M{}, option.SetLimit(lim), option.SetSkip(skip))
+	res, err := m.Col.Find(ct, filter)
 
 	if err != nil {
 		return nil, err
@@ -51,11 +59,42 @@ func GetPagination(col mongo.Collection, lim int64, skip int64) ([]interface{}, 
 
 	for res.Next(ct) {
 
-		var tmp data.ReqDataMaster
+		if m.Tipe == 1 {
+			res.Decode(&ret)
+			tmpRes = append(tmpRes, ret)
+		} else {
+			res.Decode(&ret2)
+			tmpRes = append(tmpRes, ret2)
+		}
 
-		res.Decode(&tmp)
+	}
 
-		tmpRes = append(tmpRes, tmp)
+	return tmpRes, nil
+}
+
+func (m F) GetPagination(lim int64, skip int64) ([]interface{}, error) {
+
+	var tmpRes []interface{}
+
+	ct := MakeContext(10)
+
+	option := options.FindOptions{}
+
+	res, err := m.Col.Find(ct, bson.M{}, option.SetLimit(lim), option.SetSkip(skip))
+
+	if err != nil {
+		return nil, err
+	}
+
+	for res.Next(ct) {
+
+		if m.Tipe == 1 {
+			res.Decode(&ret)
+			tmpRes = append(tmpRes, ret)
+		} else {
+			res.Decode(&ret2)
+			tmpRes = append(tmpRes, ret2)
+		}
 
 	}
 
@@ -63,21 +102,35 @@ func GetPagination(col mongo.Collection, lim int64, skip int64) ([]interface{}, 
 
 }
 
-func GetWithParam(col mongo.Collection, payload interface{}) interface{} {
-
-	var tmpRes data.ReqDataMaster
+func (m F) GetWithParam(payload interface{}) interface{} {
 
 	ct := MakeContext(10)
 
-	col.FindOne(ct, payload).Decode(&tmpRes)
+	if m.Tipe == 1 {
 
-	if tmpRes.Id.IsZero() == false {
-		return tmpRes
+		m.Col.FindOne(ct, payload).Decode(&ret)
+
+		if ret.Id.IsZero() == false {
+			return ret
+		} else {
+			return nil
+		}
+
 	} else {
-		return nil
+
+		m.Col.FindOne(ct, payload).Decode(&ret2)
+
+		if ret2.Id.IsZero() == false {
+			return ret
+		} else {
+			return nil
+		}
+
 	}
 
 }
+
+// ------ Universal ----
 
 func GetLen(col mongo.Collection) (int64, error) {
 
