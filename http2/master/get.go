@@ -2,156 +2,79 @@ package master
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"ware/data"
-	"ware/db"
+	"ware/controller/ctrm"
 	"ware/http2"
 
 	"github.com/gorilla/mux"
 )
 
-func GetAllData(res http.ResponseWriter, req *http.Request) {
+var bol ctrm.ResBool
 
+func (h HttpMaster) GetAllData(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var resBool data.ResBool
-
-	result, err := m.GetAllData()
-
-	var resArr data.ResArray
-
-	if result == nil || err != nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
+	cur, err := d.GetAll()
+	tmp := c.ConvertCursor(cur)
+	if err != nil || tmp == nil {
+		bol.Res = false
+		json.NewEncoder(res).Encode(bol)
 		return
-
 	}
-
-	resArr.Res = result
-
-	json.NewEncoder(res).Encode(resArr)
-
+	json.NewEncoder(res).Encode(tmp)
 }
 
-func GetAllWithParamModel(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) GetAllWithParamModel(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var tmpReq data.ReqObjModel
-
-	tmpReq.Model = mux.Vars(req)["model"]
-
-	result, err := m.GetAllWithParam(tmpReq)
-
-	var tmpBool data.ResBool
-
-	if err != nil || result == nil {
-
-		tmpBool.Res = false
-		json.NewEncoder(res).Encode(tmpBool)
-
+	tmp := mux.Vars(req)["model"]
+	obj := ctrm.ItemModel{tmp}
+	cur, er := d.GetAllWithParam(obj)
+	arr := c.ConvertCursor(cur)
+	if arr == nil || er != nil {
+		bol.Res = false
+		json.NewEncoder(res).Encode(bol)
 		return
-
 	}
-
-	var tmpArr data.ResArray
-
-	tmpArr.Res = result
-
-	json.NewEncoder(res).Encode(tmpArr)
-
+	json.NewEncoder(res).Encode(arr)
 }
 
-func GetAllWithParamTipe(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) GetAllWithParamTipe(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var tmpReq data.ReqObjTipe
-
-	tmpReq.Tipe = mux.Vars(req)["tipe"]
-
-	result, err := m.GetAllWithParam(tmpReq)
-
-	var tmpBool data.ResBool
-
-	if err != nil || result == nil {
-
-		tmpBool.Res = false
-		json.NewEncoder(res).Encode(tmpBool)
-
+	tmp := mux.Vars(req)["tipe"]
+	obj := ctrm.ItemTipe{tmp}
+	cur, er := d.GetAllWithParam(obj)
+	arr := c.ConvertCursor(cur)
+	if arr == nil || er != nil {
+		bol.Res = false
+		json.NewEncoder(res).Encode(bol)
 		return
-
 	}
-
-	var tmpArr data.ResArray
-
-	tmpArr.Res = result
-
-	json.NewEncoder(res).Encode(tmpArr)
-
+	json.NewEncoder(res).Encode(arr)
 }
 
-func GetWithParamMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) GetAllWithParamId(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var resBool data.ResBool
-
-	var tmpFormat data.ReqItemIdDataMaster
-
-	tmpReq := mux.Vars(req)["id"]
-
-	tmpFormat.IdMaster = tmpReq
-
-	result := m.GetWithParam(tmpFormat)
-
-	var resObj data.ResObj
-
-	if result == nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
+	tmp := mux.Vars(req)["id"]
+	obj := ctrm.ItemId{tmp}
+	cur := d.GetOneWithParam(obj)
+	has := c.FormatToObj(cur)
+	if has == nil {
+		bol.Res = false
+		json.NewEncoder(res).Encode(bol)
 		return
-
 	}
-
-	resObj.Res = result
-
-	json.NewEncoder(res).Encode(resObj)
-
+	json.NewEncoder(res).Encode(has)
 }
 
-func GetTotalMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) GetTotal(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var resBool data.ResBool
-
-	var tmpRes data.ResInt
-
-	var tmpInt int64
-
-	tmpInt, errr := db.GetLen(*col)
-
-	tmpRes.Res = tmpInt
-
-	if errr != nil || err != nil {
-
-		fmt.Println(errr)
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
+	tot, err := d.GetLen()
+	if err != nil {
+		bol.Res = false
+		json.NewEncoder(res).Encode(bol)
 		return
-
 	}
-
-	json.NewEncoder(res).Encode(tmpRes)
-
+	obj := struct {
+		Res int64 `json:"res"`
+	}{tot}
+	json.NewEncoder(res).Encode(obj)
 }

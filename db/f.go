@@ -23,10 +23,9 @@ func (m MongoDB) GetPagination(skip int64, lim int64) (*mongo.Cursor, error) {
 	return res, err
 
 }
-func (m MongoDB) GetOneWithParam(payload interface{}) interface{} {
-	var tmp interface{}
+func (m MongoDB) GetOneWithParam(payload interface{}) *mongo.SingleResult {
 	ct := m.MakeContext(10)
-	col.FindOne(ct, payload).Decode(&tmp)
+	tmp := col.FindOne(ct, payload)
 	return tmp
 }
 

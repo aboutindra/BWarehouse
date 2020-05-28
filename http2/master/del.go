@@ -3,31 +3,19 @@ package master
 import (
 	"encoding/json"
 	"net/http"
-	"ware/data"
-	"ware/db"
+	"ware/controller/ctrm"
 	"ware/http2"
 )
 
-func DelOneMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) DelOneMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqItemIdDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.DelOne(*col, tmpReq)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.ItemId
+	json.NewDecoder(req.Body).Decode(&tmp)
+	er := d.DelOne(tmp)
+	if er != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }

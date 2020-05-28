@@ -12,8 +12,6 @@ type MongoDB struct {
 
 var col *mongo.Collection
 
-func (m MongoDB) init() {
-
+func (m MongoDB) Init() {
 	col = m.MakeConnection(m.Server, m.Dbname, m.Coll)
-
 }

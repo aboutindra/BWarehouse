@@ -3,127 +3,76 @@ package master
 import (
 	"encoding/json"
 	"net/http"
-	"ware/data"
-	"ware/db"
+	"ware/controller/ctrm"
 	"ware/http2"
 )
 
-func PutOneStokMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) PutOneStokMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqObjUpdateStokDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.UpdOneStok(*col, tmpReq.F, tmpReq.S)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.FormatUpdateStok
+	json.NewDecoder(req.Body).Decode(&tmp)
+	prim := c.FormatUpdateStok(tmp.Set.Data)
+	err := d.UpdOne(tmp.Find, prim)
+	if err != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }
 
-func PutOneTipeMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) PutOneNameMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqObjUpdateTipeDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.UpdOneTipe(*col, tmpReq.F, tmpReq.S)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.FormatUpdateName
+	json.NewDecoder(req.Body).Decode(&tmp)
+	prim := c.FormatUpdateName(tmp.Set.Data)
+	err := d.UpdOne(tmp.Find, prim)
+	if err != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }
 
-func PutOneModelMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) PutOneModelMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqObjUpdateModelDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.UpdOneModel(*col, tmpReq.F, tmpReq.S)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.FormatUpdateModel
+	json.NewDecoder(req.Body).Decode(&tmp)
+	prim := c.FormatUpdateModel(tmp.Set.Data)
+	err := d.UpdOne(tmp.Find, prim)
+	if err != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }
 
-func PutOneNameMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) PutOneTipeMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqObjUpdateNameDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.UpdOneName(*col, tmpReq.F, tmpReq.S)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.FormatUpdateTipe
+	json.NewDecoder(req.Body).Decode(&tmp)
+	prim := c.FormatUpdateTipe(tmp.Set.Data)
+	err := d.UpdOne(tmp.Find, prim)
+	if err != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }
 
-func PutOneSubMaster(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) PutOneSubMaster(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var tmpReq data.ReqObjUpdateSubDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	errr := db.UpdOneSub(*col, tmpReq.F, tmpReq.S)
-
-	var resBool data.ResBool
-
-	if err != nil || errr != nil {
-		resBool.Res = false
+	var tmp ctrm.FormatUpdateSub
+	json.NewDecoder(req.Body).Decode(&tmp)
+	prim := c.FormatUpdateSub(tmp.Set.Data)
+	err := d.UpdOne(tmp.Find, prim)
+	if err != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
+		bol.Res = true
 	}
-
-	json.NewEncoder(res).Encode(resBool)
-
+	json.NewEncoder(res).Encode(bol)
 }

@@ -4,84 +4,43 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"ware/data"
-	"ware/db"
+	"ware/controller/ctrm"
 	"ware/http2"
 )
 
-func InsertOneMaterial(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) InsertOneMaterial(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var tmpReq data.ReqDataMaster
-
-	json.NewDecoder(req.Body).Decode(&tmpReq)
-
-	tmpReq.Tgl = time.Now()
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var resBool data.ResBool
-
-	errr := db.InOne(*col, tmpReq)
-
-	if err != nil || errr != nil {
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
+	var tmp ctrm.DataMaster
+	json.NewDecoder(req.Body).Decode(&tmp)
+	tmp.Tgl = time.Now()
+	er := d.InOne(tmp)
+	if er != nil {
+		bol.Res = false
 	} else {
-		resBool.Res = true
-		json.NewEncoder(res).Encode(resBool)
+		bol.Res = true
 	}
-
+	json.NewEncoder(res).Encode(bol)
 }
 
-func InsertManyMaterial(res http.ResponseWriter, req *http.Request) {
-
+func (h HttpMaster) InsertManyMaterial(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
-
-	var tmpReq []interface{}
-
+	var tmpReq []ctrm.DataMaster
 	json.NewDecoder(req.Body).Decode(&tmpReq)
-
 	var tmpParam []interface{}
-
-	var len int = len(tmpReq)
-
-	var i int = 0
-
+	len := len(tmpReq)
+	i := 0
 	for i < len {
-
-		var tmp data.ReqDataMaster
-
-		tmp = tmpReq[i].(data.ReqDataMaster)
-
+		var tmp ctrm.DataMaster
+		tmp = tmpReq[i]
 		tmp.Tgl = time.Now()
-
 		tmpParam = append(tmpParam, tmp)
-
 		i++
 	}
-
-	col, err := db.MakeConnection(mongoDB, dbName, coll)
-
-	var resBool data.ResBool
-
-	errr := db.InMany(*col, tmpParam)
-
-	if err != nil || errr != nil {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
-
+	err := d.InMany(tmpParam)
+	if err != nil {
+		bol.Res = false
 	} else {
-
-		resBool.Res = false
-		json.NewEncoder(res).Encode(resBool)
-
-		return
+		bol.Res = true
 	}
-
+	json.NewEncoder(res).Encode(bol)
 }
