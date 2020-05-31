@@ -33,6 +33,7 @@ func main() {
 	r.StrictSlash(true)
 
 	r.HandleFunc("/v1/api/all", htm.GetAllData).Methods("GET")
+	r.HandleFunc("/v1/api/totalapi/all", htm.GetAllData).Methods("GET")
 	r.HandleFunc("/v1/api/total", htm.GetTotal).Methods("GET")
 	r.HandleFunc("/v1/api/param/i/{id}", htm.GetAllWithParamId).Methods("GET")
 	r.HandleFunc("/v1/api/param/t/{tipe}", htm.GetAllWithParamTipe).Methods("GET")

@@ -10,20 +10,23 @@ import (
 
 func (h HttpMaster) InsertOneMaterial(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
+	col, con := d.MakeConnection()
 	var tmp ctrm.DataMaster
 	json.NewDecoder(req.Body).Decode(&tmp)
 	tmp.Tgl = time.Now()
-	er := d.InOne(tmp)
+	er := d.InOne(col, tmp)
 	if er != nil {
 		bol.Res = false
 	} else {
 		bol.Res = true
 	}
+	d.Dis(con)
 	json.NewEncoder(res).Encode(bol)
 }
 
 func (h HttpMaster) InsertManyMaterial(res http.ResponseWriter, req *http.Request) {
 	http2.SetHeader(res)
+	col, con := d.MakeConnection()
 	var tmpReq []ctrm.DataMaster
 	json.NewDecoder(req.Body).Decode(&tmpReq)
 	var tmpParam []interface{}
@@ -36,11 +39,12 @@ func (h HttpMaster) InsertManyMaterial(res http.ResponseWriter, req *http.Reques
 		tmpParam = append(tmpParam, tmp)
 		i++
 	}
-	err := d.InMany(tmpParam)
+	err := d.InMany(col, tmpParam)
 	if err != nil {
 		bol.Res = false
 	} else {
 		bol.Res = true
 	}
+	d.Dis(con)
 	json.NewEncoder(res).Encode(bol)
 }

@@ -11,7 +11,10 @@ type DataOutput struct {
 	IdMate string             `json:"idMate, omitempty" bson:"idMate, omitempty"`
 	Name   string             `json:"name, omitempty" bson:"name, omitempty"`
 	Qty    int64              `json:"qty, omitempty" bson:"qty, omitempty"`
-	Tgl    time.Time          `json:"tgl" bson:"tgl"`
+}
+
+type DataOutArr struct {
+	Data []DataOutput `json:"data" bson:"data"`
 }
 
 type ItemId struct {

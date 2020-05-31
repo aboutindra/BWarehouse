@@ -1,60 +1,74 @@
 package global
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"sync"
 	"time"
 	"ware/controller/ctri"
 	"ware/controller/ctrm"
 	"ware/http2"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (g HttpGlobal) GetMasterWithId(payload ctrm.ItemId) ctrm.DataMaster {
-	curr := dm.GetOneWithParam(payload)
+	ct, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	con, _ := mongo.Connect(ct, options.Client().ApplyURI("mongodb://localhost:27017"))
+	col := con.Database("WarehouseDB").Collection("Master")
+	curr := col.FindOne(ct, payload)
 	tmp := cm.FormatToObj(curr)
+	con.Disconnect(ct)
 	return tmp.(ctrm.DataMaster)
 }
 
-func (g HttpGlobal) AddStokMaster(id string, stok int64, sta1 chan bool) {
+func (g HttpGlobal) AddStokMaster(id string, stok int64, wg *sync.WaitGroup) {
+	ct, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	con, _ := mongo.Connect(ct, options.Client().ApplyURI("mongodb://localhost:27017"))
+	col := con.Database("WarehouseDB").Collection("Master")
 	var find ctrm.ItemId
 	find.Data = id
 	format := cm.FormatUpdateStok(stok)
-	err := dm.UpdOne(find, format)
-	if err != nil {
-		sta1 <- false
-	} else {
-		sta1 <- true
-	}
+	col.UpdateOne(ct, find, format)
+	con.Disconnect(ct)
+	defer wg.Done()
 }
 
-func (g HttpGlobal) InInput(payload interface{}, sta2 chan bool) {
-	err := dm.InOne(payload)
-	if err != nil {
-		sta2 <- false
-	} else {
-		sta2 <- true
-	}
+func (g HttpGlobal) InInput(payload interface{}, wg *sync.WaitGroup) {
+	ct, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	con, _ := mongo.Connect(ct, options.Client().ApplyURI("mongodb://localhost:27017"))
+	col := con.Database("WarehouseDB").Collection("Input")
+	col.InsertOne(ct, payload)
+	con.Disconnect(ct)
+	defer wg.Done()
 }
 
-func (g HttpGlobal) MinusStokMaster(payload ctrm.ItemSub, len int, sta3 chan bool) {
+func (g HttpGlobal) MinusStokMaster(payload ctrm.ItemSub, len int, wg *sync.WaitGroup) {
+	ct, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	con, _ := mongo.Connect(ct, options.Client().ApplyURI("mongodb://localhost:27017"))
+	col := con.Database("WarehouseDB").Collection("Master")
 	var i int = 0
 	for i < len {
 		var find ctrm.ItemId
 		find.Data = payload.Data[i].IdSub
 		format := cm.FormatUpdateStok(payload.Data[i].Qty)
-		dm.UpdOne(find, format)
+		col.UpdateOne(ct, find, format)
 		i++
 	}
-	sta3 <- true
+	if i == len {
+		con.Disconnect(ct)
+		defer wg.Done()
+	}
 }
 
-func (g HttpGlobal) InOut(payload []interface{}, sta4 chan bool) {
-	err := dm.InMany(payload)
-	if err != nil {
-		sta4 <- false
-	} else {
-		sta4 <- true
-	}
+func (g HttpGlobal) InOut(payload []interface{}, wg *sync.WaitGroup) {
+	defer wg.Done()
+	ct, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	con, _ := mongo.Connect(ct, options.Client().ApplyURI("mongodb://localhost:27017"))
+	col := con.Database("WarehouseDB").Collection("Output")
+	col.InsertMany(ct, payload)
 }
 
 func (g HttpGlobal) ToolsRecord(res http.ResponseWriter, req *http.Request) {
@@ -76,46 +90,41 @@ func (g HttpGlobal) ToolsRecord(res http.ResponseWriter, req *http.Request) {
 	var tmpUpdateMany ctrm.ItemSub
 	tmpUpdateMany.Data = tmp.Sub
 
-	var len int = len(tmp.Sub)
+	var leng int = len(tmp.Sub)
 
-	var i int = 0
+	var o int = 0
 
 	var filter2 ctrm.ItemId
 
-	for i < len {
-		filter2.Data = tmpUpdateMany.Data[i].IdSub
+	var sub []interface{}
+
+	for o < leng {
+		sub = append(sub, tmp.Sub[o])
+		sub[o] = tmp.Sub[o]
+		filter2.Data = tmpUpdateMany.Data[o].IdSub
 		tmp2 := g.GetMasterWithId(filter2)
-		tmpUpdateMany.Data[i].Qty = tmp2.Stok - tmpUpdateMany.Data[i].Qty
-		i++
+		tmpUpdateMany.Data[o].Qty = tmp2.Stok - tmpUpdateMany.Data[o].Qty
+		o++
 	}
 
-	var tmpSub []interface{}
+	if o == leng {
 
-	tmpSub = append(tmpSub, tmp.Sub)
+		var wg sync.WaitGroup
 
-	sta1 := make(chan bool)
-	sta2 := make(chan bool)
-	sta3 := make(chan bool)
-	sta4 := make(chan bool)
+		wg.Add(4)
 
-	go g.AddStokMaster(tmp.IdMate, tmp.Stok+1, sta1)
-	go g.InInput(tmpInput, sta2)
-	go g.MinusStokMaster(tmpUpdateMany, len, sta3)
-	go g.InOut(tmpSub, sta4)
+		go g.MinusStokMaster(tmpUpdateMany, leng, &wg)
+		go g.AddStokMaster(tmp.IdMate, tmp.Stok+1, &wg)
+		go g.InInput(tmpInput, &wg)
+		go g.InOut(sub, &wg)
 
-	x := <-sta1
-	y := <-sta2
-	z := <-sta3
-	a := <-sta4
+		wg.Wait()
 
-	var tmpBool ctrm.ResBool
+		var tmpBool ctrm.ResBool
 
-	if x == true && y == true && z == true && a == true {
 		tmpBool.Res = true
-	} else {
-		tmpBool.Res = false
-	}
+		json.NewEncoder(res).Encode(tmpBool)
 
-	json.NewEncoder(res).Encode(tmpBool)
+	}
 
 }

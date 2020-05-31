@@ -14,7 +14,6 @@ var d db.MongoDB
 var bol ctrm.ResBool
 
 func init() {
-	c = ctri.ControlInput{}
 	d = db.MongoDB{"mongodb://localhost:27017", "WarehouseDB", "Input"}
-	d.Init()
+	c = ctri.ControlInput{}
 }

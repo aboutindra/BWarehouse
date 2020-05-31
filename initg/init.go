@@ -20,7 +20,7 @@ func init() {
 
 func main() {
 
-	runtime.GOMAXPROCS(6)
+	runtime.GOMAXPROCS(4)
 
 	port := ":5554"
 

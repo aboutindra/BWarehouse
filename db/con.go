@@ -15,18 +15,23 @@ func (m MongoDB) MakeContext(payload int) context.Context {
 	return ctx
 }
 
-func (m MongoDB) MakeConnection(payload string, db string, col string) *mongo.Collection {
+func (m MongoDB) MakeConnection() (*mongo.Collection, *mongo.Client) {
 
 	ct := m.MakeContext(10)
 
-	con, err := mongo.Connect(ct, options.Client().ApplyURI(payload))
+	con, err := mongo.Connect(ct, options.Client().ApplyURI(m.Server))
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	coll := con.Database(db).Collection(col)
+	coll := con.Database(m.Dbname).Collection(m.Coll)
 
-	return coll
+	return coll, con
 
+}
+
+func (m MongoDB) Dis(con *mongo.Client) {
+	ct := m.MakeContext(10)
+	con.Disconnect(ct)
 }
